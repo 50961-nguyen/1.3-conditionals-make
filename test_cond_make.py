@@ -1,6 +1,6 @@
 import re
 import sys
-import pytest
+import builtins
 
 filename = "cond_make"
 
@@ -46,12 +46,12 @@ def test_ipo_comments():
     assert re.search(r'#.*processing|#.*output', kids_code, re.IGNORECASE), "You must include a '# Processing' and/or '# Output' comment section"
 
 
-def test_levels(capsys, monkeypatch):
+def test_levels(capsys):
     """Test all the numbers from 1 to 100"""
     for i in range(1, 101):
-        monkeypatch.setattr("builtins.input", lambda _: i)
-        __import__(filename)
-        captured = capsys.readouterr()
+        sys.modules.pop(filename, None)
+        original_input = builtins.input
+        builtins.input = lambda _: i
 
         if i < 50:
             expected_answer = "level 0"
@@ -64,5 +64,10 @@ def test_levels(capsys, monkeypatch):
         else:
             expected_answer = "level 4"
 
-        assert expected_answer in captured.out.lower(), f"You got the level for {i} wrong, should have been {expected_answer}"
-        del sys.modules[filename]
+        try:
+            __import__(filename)
+            captured = capsys.readouterr()
+            assert expected_answer in captured.out.lower(), f"You got the level for {i} wrong, should have been {expected_answer}"
+        finally:
+            builtins.input = original_input
+            sys.modules.pop(filename, None)
