@@ -1,0 +1,66 @@
+name: Autograding Tests
+
+on:
+  push:
+  workflow_dispatch:
+  repository_dispatch:
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pytest
+        run: python -m pip install pytest
+
+      - name: Header comments (author and date)
+        id: header-comments
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Header comments (author and date)
+          setup-command: ""
+          command: python -m pytest test_cond_make.py::test_header_comments -q
+          timeout: 5
+          max-score: 1
+
+      - name: IPO comments
+        id: ipo-comments
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: IPO comments
+          setup-command: ""
+          command: python -m pytest test_cond_make.py::test_ipo_comments -q
+          timeout: 5
+          max-score: 2
+
+      - name: Levels output
+        id: levels
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Levels output
+          setup-command: ""
+          command: python -m pytest test_cond_make.py::test_levels -q
+          timeout: 5
+          max-score: 7
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          HEADER-COMMENTS_RESULTS: "${{steps.header-comments.outputs.result}}"
+          IPO-COMMENTS_RESULTS: "${{steps.ipo-comments.outputs.result}}"
+          LEVELS_RESULTS: "${{steps.levels.outputs.result}}"
+        with:
+          runners: header-comments,ipo-comments,levels
