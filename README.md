@@ -1,5 +1,5 @@
 # Setup
-1. Git clone this repository onto your computer, under your make Folder.
+1. Git clone this repository onto your computer, under your U1 Folder.
 2. Open VS Code.
 3. Create a new file called cond_make.py in this repository.
 
